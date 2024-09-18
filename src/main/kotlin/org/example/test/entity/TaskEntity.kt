@@ -12,6 +12,9 @@ class TaskEntity(
     @Column(name = "id_task", nullable = false)
     val idTask: Long? = null,
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_type", nullable = false)
+    var type: TypeEntity? = null,
 
     @Column(name = "description", nullable = true)
     var description: String? = null,
@@ -20,6 +23,7 @@ class TaskEntity(
     @Temporal(TemporalType.DATE)
     var date: LocalDate? = null,
 
+    @JsonIgnoreProperties("tasks")
     @ManyToMany
     @JoinTable(
         name = "tag_task",

@@ -14,6 +14,7 @@ class TagEntity(
     @Column(name = "title", nullable = false)
     var title: String? = null,
 
+    @JsonIgnoreProperties("tag")
     @ManyToMany
     @JoinTable(
         name = "tag_task",
