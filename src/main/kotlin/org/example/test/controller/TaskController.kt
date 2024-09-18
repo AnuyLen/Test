@@ -6,6 +6,8 @@ import org.example.test.model.Task
 import org.example.test.repository.TagRepository
 import org.example.test.repository.TaskRepository
 import org.example.test.repository.TypeRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
@@ -20,22 +22,26 @@ class TaskController(private val taskRepository: TaskRepository,
 
     //Get all tasks
     @GetMapping("/tasks")
-    fun getAllTasks(@RequestParam("sort") sortType: String?): List<TaskEntity> =
+    fun getAllTasks(@RequestParam("sort") sortType: String?,
+                    @RequestParam(value = "offset", defaultValue = "0") offset: Int,
+                    @RequestParam(value = "limit", defaultValue = "10") limit: Int): Page<TaskEntity> =
         when (sortType){
-            "desc" -> taskRepository.findByOrderByTypePriorityDesc()
-            "asc" -> taskRepository.findByOrderByTypePriorityAsc()
-            else -> taskRepository.findAll()
+            "desc" -> taskRepository.findByOrderByTypePriorityDesc(PageRequest.of(offset, limit))
+            "asc" -> taskRepository.findByOrderByTypePriorityAsc(PageRequest.of(offset, limit))
+            else -> taskRepository.findAll(PageRequest.of(offset, limit))
         }
 
     //Get all tasks by date
     @GetMapping("/task/{date}")
     fun getTasksByDate(@PathVariable(value = "date") dateString: String,
-                       @RequestParam("sort") sortType: String?): List<TaskEntity> {
+                       @RequestParam("sort") sortType: String?,
+                       @RequestParam(value = "offset", defaultValue = "0") offset: Int,
+                       @RequestParam(value = "limit", defaultValue = "10") limit: Int): Page<TaskEntity> {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val date: LocalDate = LocalDate.parse(dateString, formatter)
         return when (sortType){
-            "desc" -> taskRepository.findByDateOrderByTypePriorityDesc(date)
-            else -> taskRepository.findByDateOrderByTypePriorityAsc(date)
+            "desc" -> taskRepository.findByDateOrderByTypePriorityDesc(date, PageRequest.of(offset, limit))
+            else -> taskRepository.findByDateOrderByTypePriorityAsc(date, PageRequest.of(offset, limit))
         }
     }
 
