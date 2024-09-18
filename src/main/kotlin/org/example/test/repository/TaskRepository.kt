@@ -8,6 +8,13 @@ import java.time.LocalDate
 @Repository
 interface TaskRepository: JpaRepository<TaskEntity, Long> {
 
-    fun findByDate(date: LocalDate): TaskEntity
+    fun findByDateOrderByTypePriorityAsc(date: LocalDate): List<TaskEntity>
+
+    fun findByDateOrderByTypePriorityDesc(date: LocalDate): List<TaskEntity>
+
+
+    fun findByOrderByTypePriorityAsc(): List<TaskEntity>
+
+    fun findByOrderByTypePriorityDesc(): List<TaskEntity>
 
 }

@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface TypeRepository: JpaRepository<TypeEntity, Long> {
+    fun findByOrderByPriorityAsc(): List<TypeEntity>
+
+    fun findByOrderByPriorityDesc(): List<TypeEntity>
 }

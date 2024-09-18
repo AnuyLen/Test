@@ -17,8 +17,13 @@ class TagController(private val tagRepository: TagRepository) {
 
     //Get tag by id
     @GetMapping("/tag/{id}")
-    fun getTagByID(@PathVariable(value = "id") tagId: Long): ResponseEntity<TagEntity> {
+    fun getTagByID(@PathVariable(value = "id") tagId: Long, @RequestParam("sort") sortType: String?): ResponseEntity<TagEntity> {
         return tagRepository.findById(tagId).map { tag ->
+            tag.tasks = if (sortType == "desc") {
+                tag.tasks?.sortedByDescending { it.type?.priority }?.toSet()
+            } else {
+                tag.tasks?.sortedBy { it.type?.priority }?.toSet()
+            }
             ResponseEntity.ok(tag)
         }.orElse(ResponseEntity.notFound().build())
     }
