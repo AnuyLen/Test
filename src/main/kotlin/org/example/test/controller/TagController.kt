@@ -29,4 +29,12 @@ class TagController(private val tagRepository: TagRepository) {
     }
 
 
+    @DeleteMapping("/tag/{id}")
+    fun deleteTagById(@PathVariable(value = "id") tagId: Long): ResponseEntity<String> {
+        return tagRepository.findById(tagId).map { tag ->
+            tagRepository.delete(tag)
+            ResponseEntity.ok().body("Тег удален")
+        }.orElse(ResponseEntity.notFound().build())
+    }
+
 }

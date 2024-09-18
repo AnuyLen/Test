@@ -2,6 +2,8 @@ package org.example.test.controller
 
 import org.example.test.entity.TaskEntity
 import org.example.test.repository.TaskRepository
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -31,4 +33,13 @@ class TaskController(private val taskRepository: TaskRepository) {
         }
     }
 
+
+
+    @DeleteMapping("/task/{id}")
+    fun deleteTaskById(@PathVariable(value = "id") taskId: Long): ResponseEntity<String> {
+        return taskRepository.findById(taskId).map { task ->
+            taskRepository.delete(task)
+            ResponseEntity.ok().body("Задача удалена")
+        }.orElse(ResponseEntity.notFound().build())
+    }
 }
