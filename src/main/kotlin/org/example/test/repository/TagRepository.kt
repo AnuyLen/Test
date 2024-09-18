@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository
 @Repository
 interface TagRepository: JpaRepository<TagEntity, Long> {
     fun findByTasksIsNotNull(): List<TagEntity>
+
+    fun findByTitle(title: String): TagEntity?
 }
