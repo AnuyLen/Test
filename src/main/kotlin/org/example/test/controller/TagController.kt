@@ -5,6 +5,7 @@ import org.example.test.entity.TagEntity
 import org.example.test.model.Tag
 import org.example.test.repository.TagRepository
 import org.example.test.repository.TaskRepository
+import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -27,10 +28,9 @@ class TagController(private val tagRepository: TagRepository,
         @RequestParam("sort") sortType: String?
     ): ResponseEntity<TagEntity> {
         return tagRepository.findById(tagId).map { tag ->
-            tag.tasks = if (sortType == "desc") {
-                tag.tasks?.sortedByDescending { it.type?.priority }?.toSet()
-            } else {
-                tag.tasks?.sortedBy { it.type?.priority }?.toSet()
+            when (sortType){
+                "desc" -> tag.tasks = tag.tasks?.sortedByDescending { it.type?.priority }?.toSet()
+                "asc" -> tag.tasks = tag.tasks?.sortedBy { it.type?.priority }?.toSet()
             }
             ResponseEntity.ok(tag)
         }.orElse(ResponseEntity.notFound().build())

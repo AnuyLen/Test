@@ -9,4 +9,5 @@ interface TagRepository: JpaRepository<TagEntity, Long> {
     fun findByTasksIsNotNull(): List<TagEntity>
 
     fun findByTitle(title: String): TagEntity?
+
 }

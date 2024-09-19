@@ -41,7 +41,8 @@ class TaskController(private val taskRepository: TaskRepository,
         val date: LocalDate = LocalDate.parse(dateString, formatter)
         return when (sortType){
             "desc" -> taskRepository.findByDateOrderByTypePriorityDesc(date, PageRequest.of(offset, limit))
-            else -> taskRepository.findByDateOrderByTypePriorityAsc(date, PageRequest.of(offset, limit))
+            "asc" -> taskRepository.findByDateOrderByTypePriorityAsc(date, PageRequest.of(offset, limit))
+            else -> taskRepository.findByDate(date, PageRequest.of(offset, limit))
         }
     }
 
