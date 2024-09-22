@@ -1,30 +1,41 @@
 package org.example.test.controller
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import org.example.test.entity.TagEntity
 import org.example.test.model.Tag
 import org.example.test.repository.TagRepository
 import org.example.test.repository.TaskRepository
-import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api")
+@io.swagger.v3.oas.annotations.tags.Tag(
+    name = "Теги.",
+    description = "Все методы для работы с тегами.",
+)
 class TagController(private val tagRepository: TagRepository,
                     private val taskRepository: TaskRepository
 ) {
 
     //Get all tags
     @GetMapping("/tags")
+    @Operation(summary = "Получить информацию о всех тегах, у которых есть задачи.")
     fun getAllTags(): List<TagEntity> {
         return tagRepository.findByTasksIsNotNull()
     }
 
     //Get tag by id
     @GetMapping("/tag/{id}")
+    @Operation(summary = "Получить информацию о теге и его задачах по id.")
     fun getTagByID(
+        @Parameter(description = "id тега")
         @PathVariable(value = "id") tagId: Long,
+        @Parameter(description = "Параметр сортировки по приоритету: asc - по возрастанию, desc - по убыванию.",
+            example = "asc")
         @RequestParam("sort") sortType: String?
     ): ResponseEntity<TagEntity> {
         return tagRepository.findById(tagId).map { tag ->
@@ -38,7 +49,11 @@ class TagController(private val tagRepository: TagRepository,
 
     //Create new tag
     @PostMapping("/tag")
-    fun createNewTag(@Valid @RequestBody tag: Tag): ResponseEntity<*> {
+    @Operation(summary = "Создание нового тега.")
+    fun createNewTag(
+        @Parameter(description = "Информация о теге.")
+        @Valid @RequestBody tag: Tag
+    ): ResponseEntity<*> {
         return when {
             tag.title.isNullOrEmpty() -> ResponseEntity.badRequest().body("Проверьте введенные данные: название")
             else -> {
@@ -55,24 +70,46 @@ class TagController(private val tagRepository: TagRepository,
 
     //Update tag
     @PutMapping("/tag/{id}")
-    fun updateTagById(@PathVariable(value = "id") tagId: Long,
-                      @Valid @RequestBody newTag: Tag
+    @Operation(summary = "Изменение информации о теге.")
+    fun updateTagById(
+        @Parameter(description = "id тега")
+        @PathVariable(value = "id") tagId: Long,
+        @Parameter(description = "Информация о теге.")
+        @Valid @RequestBody newTag: Tag
     ): ResponseEntity<*> {
-        return if (newTag.title?.let { tagRepository.findByTitle(it) } != null) {
-            ResponseEntity.badRequest().body("Тег с таким названием уже существует!")
-        } else {
-            tagRepository.findById(tagId).map { existingTag ->
-                val updateTagEntity: TagEntity = existingTag.apply {
-                    title = newTag.title ?: existingTag.title
-                    tasks = newTag.tasks_id?.let { taskRepository.findAllById(it).toSet() } ?: existingTag.tasks
-                }
+        return when {
+            newTag.title.isNullOrEmpty() -> ResponseEntity.badRequest().body("Проверьте введенные данные: название")
+            newTag.title.let { tagRepository.findByTitle(it) } != null -> ResponseEntity.badRequest()
+                .body("Тег с таким названием уже существует!")
+            else -> {
+                val updateTagEntity = TagEntity(
+                    idTag = tagId,
+                    title = newTag.title,
+                    tasks = newTag.tasks_id?.let { taskRepository.findAllById(it).toSet() }
+                )
                 ResponseEntity.ok().body(tagRepository.save(updateTagEntity))
-            }.orElse(ResponseEntity.notFound().build())
+            }
         }
+
+//        return if (newTag.title?.let { tagRepository.findByTitle(it) } != null) {
+//            ResponseEntity.badRequest().body("Тег с таким названием уже существует!")
+//        } else {
+//            tagRepository.findById(tagId).map { existingTag ->
+//                val updateTagEntity: TagEntity = existingTag.apply {
+//                    title = newTag.title ?: existingTag.title
+//                    tasks = newTag.tasks_id?.let { taskRepository.findAllById(it).toSet() } ?: existingTag.tasks
+//                }
+//                ResponseEntity.ok().body(tagRepository.save(updateTagEntity))
+//            }.orElse(ResponseEntity.notFound().build())
+//        }
     }
 
     @DeleteMapping("/tag/{id}")
-    fun deleteTagById(@PathVariable(value = "id") tagId: Long): ResponseEntity<String> {
+    @Operation(summary = "Удаление тега.")
+    fun deleteTagById(
+        @Parameter(description = "id тега")
+        @PathVariable(value = "id") tagId: Long
+    ): ResponseEntity<String> {
         return tagRepository.findById(tagId).map { tag ->
             tagRepository.delete(tag)
             ResponseEntity.ok().body("Тег удален")

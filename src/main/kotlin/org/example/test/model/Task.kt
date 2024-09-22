@@ -19,6 +19,6 @@ data class Task(
             type = type,
             description = this.description,
             date = this.date,
-            tag = tags
+            tags = tags
         )
 }

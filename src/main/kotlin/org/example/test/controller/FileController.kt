@@ -1,10 +1,15 @@
 package org.example.test.controller
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.example.test.entity.FileEntity
 import org.example.test.repository.FileRepository
 import org.example.test.repository.TaskRepository
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
@@ -14,24 +19,35 @@ import java.nio.file.Paths
 
 @RestController
 @RequestMapping("/api")
+@Tag(
+    name = "Файлы.",
+    description = "Все методы для работы с файлами.",
+)
 class FileController(private val fileRepository: FileRepository,
                      private val taskRepository: TaskRepository
 ) {
 
     private val fileDirectory: String = "C:\\Users\\olkov\\files\\"
 
-    @PostMapping("/file/{taskId}")
-    fun uploadFileToFIleSystem(@PathVariable taskId: Long, @RequestParam("file") file: MultipartFile): ResponseEntity<String> {
+    @Transactional
+    @PostMapping("/file/{taskId}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @Operation(summary = "Добавление файла для задачи.")
+    fun uploadFileToFIleSystem(
+        @Parameter(description = "id задачи.")
+        @PathVariable taskId: Long,
+        @Parameter(description = "Файл.", content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)])
+        @RequestParam("file") file: MultipartFile
+    ): ResponseEntity<String> {
         var message = ""
         if (fileRepository.findByTaskIdTask(taskId) == null) {
             if (!file.isEmpty /*!= null*/) {
                 try {
                     taskRepository.findById(taskId).map { task ->
                         var filePath: String = fileDirectory + taskId.toString() + "\\"
-                        Files.createDirectories(Paths.get(filePath))
                         filePath += file.originalFilename
                         val fileEntity = FileEntity(null, file.contentType, filePath, file.originalFilename, task)
                         fileRepository.save(fileEntity)
+                        Files.createDirectories(Paths.get(filePath))
                         file.transferTo(File(filePath))
                         message = "Файл загружен"
                     }.orElseGet {
@@ -51,9 +67,13 @@ class FileController(private val fileRepository: FileRepository,
         }
     }
 
-    @PutMapping("file/{taskId}")
-    fun updateFile(@PathVariable(value = "taskId") taskId: Long,
-                   @RequestParam("file") newFile: MultipartFile
+    @PutMapping("file/{taskId}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @Operation(summary = "Изменение файла задачи.")
+    fun updateFile(
+        @Parameter(description = "id задачи.")
+        @PathVariable(value = "taskId") taskId: Long,
+        @Parameter(description = "Файл.", content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)])
+        @RequestParam("file") newFile: MultipartFile
     ): ResponseEntity<String> {
         val file = fileRepository.findByTaskIdTask(taskId)
         if (file != null && !newFile.isEmpty) {
@@ -79,7 +99,11 @@ class FileController(private val fileRepository: FileRepository,
     }
 
     @GetMapping("/file/{taskId}")
-    fun downloadFileFromFileSystem(@PathVariable taskId: Long): ResponseEntity<ByteArray> {
+    @Operation(summary = "Получение файла по id задачи.")
+    fun downloadFileFromFileSystem(
+        @Parameter(description = "id задачи.")
+        @PathVariable taskId: Long
+    ): ResponseEntity<ByteArray> {
         val file = fileRepository.findByTaskIdTask(taskId)
         return if (file != null) {
             val filePath: String = file.path
@@ -91,11 +115,15 @@ class FileController(private val fileRepository: FileRepository,
     }
 
     @DeleteMapping("/file/{taskId}")
-    fun deleteFile(@PathVariable(value = "taskId") taskId: Long): ResponseEntity<Void> {
+    @Operation(summary = "Удаление файла по id задачи.")
+    fun deleteFile(
+        @Parameter(description = "id задачи.")
+        @PathVariable(value = "taskId") taskId: Long
+    ): ResponseEntity<String> {
         return fileRepository.findByTaskIdTask(taskId)?.run {
             File(fileDirectory + taskId.toString()).deleteRecursively()
             fileRepository.delete(this)
-            ResponseEntity.ok().build()
+            ResponseEntity.ok().body("Файл удален")
         } ?: ResponseEntity.notFound().build()
     }
 }
