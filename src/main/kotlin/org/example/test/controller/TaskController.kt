@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.example.test.entity.TagEntity
 import org.example.test.entity.TaskEntity
 import org.example.test.model.Task
 import org.example.test.repository.TagRepository
@@ -96,8 +97,8 @@ class TaskController(private val taskRepository: TaskRepository,
 
     @Transactional
     @PutMapping("/task/{id}")
-    @Operation(summary = "Изменение задачи.")
-    fun updateTagById(
+    @Operation(summary = "Изменение информации о задаче или создание новой задачи, если она не найдена.")
+    fun updateByIdOrCreateTask(
         @Parameter(description = "id задачи.")
         @PathVariable(value = "id") taskId: Long,
         @Parameter(description = "Информация о задаче.")
@@ -121,6 +122,25 @@ class TaskController(private val taskRepository: TaskRepository,
                 ResponseEntity.ok().body(taskRepository.save(updateTaskEntity))
             }
         }
+    }
+
+    @PatchMapping("/task/{id}")
+    @Operation(summary = "Изменение информации о задаче.")
+    fun updateTaskById(
+        @Parameter(description = "id задачи")
+        @PathVariable(value = "id") taskId: Long,
+        @Parameter(description = "Информация о задаче.")
+        @Valid @RequestBody updateTask: Task
+    ): ResponseEntity<TaskEntity> {
+        return taskRepository.findById(taskId).map { existingTask ->
+            existingTask.date = updateTask.date ?: existingTask.date
+            existingTask.type = updateTask.id_type?.let { typeRepository.findById(it).get() } ?: existingTask.type
+            existingTask.description = updateTask.description ?: existingTask.description
+            existingTask.tags = updateTask.tags_id?.let { tagRepository.findAllById(it).toSet() } ?: existingTask.tags
+            ResponseEntity.ok().body(taskRepository.save(existingTask))
+        }.orElse(
+            ResponseEntity.notFound().build()
+        )
     }
 
     @DeleteMapping("/task/{id}")
