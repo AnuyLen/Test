@@ -13,9 +13,9 @@ import jakarta.persistence.*
  * @property tasks Задачи, которые принадлежат данному тегу.
  * @constructor Создает новый объект.
  */
+@Schema(description = "Информация о теге.")
 @Entity
 @Table(name = "tag")
-@Schema(description = "Информация о теге.")
 class TagEntity(
 
     @Schema(name = "Идентификатор тега")

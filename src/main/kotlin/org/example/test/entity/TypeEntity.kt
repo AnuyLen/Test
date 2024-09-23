@@ -12,9 +12,9 @@ import jakarta.persistence.*
  * @property name Название типа.
  * @constructor Создает новый объект.
  */
+@Schema(description = "Информация о типе задач.")
 @Entity
 @Table(name = "type")
-@Schema(description = "Информация о типе задач.")
 class TypeEntity (
 
     @Schema(name = "Идентификатор типа")

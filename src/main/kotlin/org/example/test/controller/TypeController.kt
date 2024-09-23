@@ -38,7 +38,6 @@ class TypeController(private val typeRepository: TypeRepository) {
     ): List<TypeEntity> =
         when (sortType){
             "desc" -> typeRepository.findByOrderByPriorityDesc()
-            "asc" -> typeRepository.findByOrderByPriorityAsc()
-            else -> typeRepository.findAll()
+            else -> typeRepository.findByOrderByPriorityAsc()
         }
 }

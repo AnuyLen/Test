@@ -1,5 +1,8 @@
 package org.example.test.advice
 
+import io.swagger.v3.oas.annotations.Hidden
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Schema
 import org.example.test.exception.AlreadyExistsException
 import org.example.test.exception.NotFoundException
 import org.example.test.model.Response
@@ -13,6 +16,7 @@ import java.io.IOException
 /**
  * Обработчик ошибок.
  */
+@Hidden
 @ControllerAdvice
 class GlobalControllerExceptionHandler{
 

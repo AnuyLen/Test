@@ -1,5 +1,7 @@
 package org.example.test.model
 
+import io.swagger.v3.oas.annotations.Hidden
+
 /**
  *
  * Содержит сообщение об ошибке и поле в котором обнаружена ошибка.
@@ -7,6 +9,7 @@ package org.example.test.model
  * @property field Поле, в котором обнаружена ошибка.
  * @property message Сообщение об ошибке.
  */
+@Hidden
 data class Violation(
     val field: String? = null,
     val message: String? = null

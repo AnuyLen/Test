@@ -45,7 +45,7 @@ class TagController(private val tagRepository: TagRepository,
      * Получение тега по идентификатору с задачами, сортированными по уровню приоритета.
      *
      * @param tagId Идентификатор тега.
-     * @param sortType Тип сортировки: asc - по возрастанию, desc - по убыванию.
+     * @param sortType Тип сортировки: asc - по возрастанию, desc - по убыванию. По умолчанию asc.
      * @return Тег - [TagEntity].
      */
     @GetMapping("/tag/{id}")
@@ -61,7 +61,7 @@ class TagController(private val tagRepository: TagRepository,
             ?: throw NotFoundException("Тег с идентификатором $tagId не найден!")
         when (sortType){
             "desc" -> tag.tasks = tag.tasks?.sortedByDescending { it.type?.priority }?.toSet()
-            "asc" -> tag.tasks = tag.tasks?.sortedBy { it.type?.priority }?.toSet()
+            else -> tag.tasks = tag.tasks?.sortedBy { it.type?.priority }?.toSet()
         }
         return tag
     }

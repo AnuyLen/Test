@@ -41,7 +41,7 @@ class TaskController(private val taskRepository: TaskRepository,
     /**
      * Получение списка всех задач.
      *
-     * @param sortType Тип сортировки: asc - по возрастанию, desc - по убыванию.
+     * @param sortType Тип сортировки: asc - по возрастанию, desc - по убыванию. По умолчанию asc.
      * @param offset Номер страницы.
      * @param limit Количество элементов на странице.
      * @return Страница, содержащая список задач - [Page]<[TaskEntity]>.
@@ -66,7 +66,7 @@ class TaskController(private val taskRepository: TaskRepository,
      * Получение списка всех задач за заданную дату.
      *
      * @param dateString Запланированная дата.
-     * @param sortType Тип сортировки: asc - по возрастанию, desc - по убыванию.
+     * @param sortType Тип сортировки: asc - по возрастанию, desc - по убыванию. По умолчанию asc.
      * @param offset Номер страницы.
      * @param limit Количество элементов на странице.
      * @return Страница, содержащая список задач - [Page]<[TaskEntity]>.

@@ -17,9 +17,9 @@ import java.time.LocalDate
  * @property tags Теги, которые принадлежат задаче.
  * @constructor Создает новый объект.
  */
+@Schema(description = "Информация о задаче.")
 @Entity
 @Table(name = "task")
-@Schema(description = "Информация о задаче.")
 class TaskEntity(
 
     @Schema(name = "Идентификатор задачи")

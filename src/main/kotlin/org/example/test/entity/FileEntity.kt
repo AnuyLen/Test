@@ -15,9 +15,9 @@ import jakarta.persistence.*
  * @property task Задача, которой принадлежит файл.
  * @constructor Создает новый объект.
  */
+@Schema(description = "Информация о файле.")
 @Entity
 @Table(name = "file")
-@Schema(description = "Информация о файле.")
 class FileEntity(
 
     @Schema(name = "Идентификатор файла")
@@ -38,8 +38,8 @@ class FileEntity(
     @Column(name = "name", nullable = false)
     var name: String? = null,
 
-    @JsonIgnore
     @Schema(name = "Задача, которой принадлежит файл")
+    @JsonIgnore
     @OneToOne
     @JoinColumn(name = "id_task")
     var task: TaskEntity? = null
