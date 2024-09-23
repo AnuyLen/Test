@@ -4,22 +4,31 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.*
 
+/**
+ *
+ * Сущность, связанная с таблицей "tag". Содержит информацию о теге.
+ *
+ * @property idTag Идентификатор тега.
+ * @property title Заголовок тега.
+ * @property tasks Задачи, которые принадлежат данному тегу.
+ * @constructor Создает новый объект.
+ */
 @Entity
 @Table(name = "tag")
 @Schema(description = "Информация о теге.")
 class TagEntity(
 
-    @Schema(name = "Идентификатор")
+    @Schema(name = "Идентификатор тега")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_tag", nullable = false)
-    val idTag: Long? = null,
+    var idTag: Long? = null,
 
-    @Schema(name = "Название")
-    @Column(name = "title", nullable = false)
+    @Schema(name = "Название тега")
+    @Column(name = "title", unique = true, nullable = false)
     var title: String? = null,
 
-    @Schema(name = "Задачи")
+    @Schema(name = "Задачи, которые принадлежат данному тегу")
     @JsonIgnoreProperties("tags")
     @ManyToMany
     @JoinTable(

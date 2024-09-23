@@ -4,6 +4,7 @@ plugins {
 	id("org.springframework.boot") version "3.3.3"
 	id("io.spring.dependency-management") version "1.1.6"
 	kotlin("plugin.jpa") version "1.9.25"
+	id("org.jetbrains.dokka") version "1.9.20"
 }
 
 group = "org.example"
@@ -35,6 +36,13 @@ dependencies {
 //	implementation("org.springdoc:springdoc-openapi-kotlin:2.5.0")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 //	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	configurations.matching { it.name.startsWith("dokka") }.configureEach {
+		resolutionStrategy.eachDependency {
+			if (requested.group.startsWith("com.fasterxml.jackson")) {
+				useVersion("2.15.3")
+			}
+		}
+	}
 }
 
 kotlin {

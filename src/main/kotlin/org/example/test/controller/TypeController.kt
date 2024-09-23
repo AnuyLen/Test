@@ -8,6 +8,12 @@ import org.example.test.repository.TypeRepository
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.web.bind.annotation.*
 
+/**
+ *
+ * Обрабатывает запросы связанные с типами задач.
+ *
+ * @property typeRepository Интерфейс [TypeController].
+ */
 @RestController
 @RequestMapping("/api")
 @Tag(
@@ -16,6 +22,12 @@ import org.springframework.web.bind.annotation.*
 )
 class TypeController(private val typeRepository: TypeRepository) {
 
+    /**
+     * Получение списка всех задач.
+     *
+     * @param sortType Тип сортировки: asc - по возрастанию, desc - по убыванию.
+     * @return Список типов задач - [List]<[TypeEntity]>.
+     */
     @Cacheable("types")
     @GetMapping("/types")
     @Operation(summary = "Получить информацию о всех типах задач.")

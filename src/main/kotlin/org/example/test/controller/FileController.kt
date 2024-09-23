@@ -5,18 +5,28 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.example.test.entity.FileEntity
+import org.example.test.exception.AlreadyExistsException
+import org.example.test.exception.NotFoundException
+import org.example.test.model.Response
 import org.example.test.repository.FileRepository
 import org.example.test.repository.TaskRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 
+/**
+ *
+ * Обрабатывает запросы связанные с задачами.
+ *
+ * @property fileRepository Интерфейс [FileRepository].
+ * @property taskRepository Интерфейс [TaskRepository].
+ */
 @RestController
 @RequestMapping("/api")
 @Tag(
@@ -27,8 +37,18 @@ class FileController(private val fileRepository: FileRepository,
                      private val taskRepository: TaskRepository
 ) {
 
+    /**
+     * Путь к директории с файлами.
+     */
     private val fileDirectory: String = "C:\\Users\\olkov\\files\\"
 
+    /**
+     * Загрузка файла для задачи с указанным идентификатором [taskId].
+     *
+     * @param taskId Идентификатор задачи.
+     * @param file Файл.
+     * @return Загруженный файл.
+     */
     @Transactional
     @PostMapping("/file/{taskId}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @Operation(summary = "Добавление файла для задачи.")
@@ -37,36 +57,32 @@ class FileController(private val fileRepository: FileRepository,
         @PathVariable taskId: Long,
         @Parameter(description = "Файл.", content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)])
         @RequestParam("file") file: MultipartFile
-    ): ResponseEntity<String> {
-        var message = ""
-        if (fileRepository.findByTaskIdTask(taskId) == null) {
-            if (!file.isEmpty /*!= null*/) {
-                try {
-                    taskRepository.findById(taskId).map { task ->
-                        var filePath: String = fileDirectory + taskId.toString() + "\\"
-                        filePath += file.originalFilename
-                        val fileEntity = FileEntity(null, file.contentType, filePath, file.originalFilename, task)
-                        fileRepository.save(fileEntity)
-                        Files.createDirectories(Paths.get(filePath))
-                        file.transferTo(File(filePath))
-                        message = "Файл загружен"
-                    }.orElseGet {
-                        message = "Задача не найдена"
-                    }
-                } catch (e: IOException) {
-                    message = "Ошибка: " + e.localizedMessage
-                }
-                return ResponseEntity.ok().body(message)
-            } else {
-                message = "Выберите файл для загрузки"
-                return ResponseEntity.badRequest().body(message)
-            }
-        } else{
-            message = "Для этой задачи файл уже добавлен"
-            return ResponseEntity.badRequest().body(message)
+    ): ResponseEntity<ByteArray> {
+        if (fileRepository.findByTaskIdTask(taskId) != null){
+            throw AlreadyExistsException("Для задачи с идентификатором $taskId файл уже добавлен!")
         }
+        if (file.isEmpty){
+            throw NotFoundException("Файл не найден!")
+        }
+        val task = taskRepository.findByIdOrNull(taskId)
+            ?: throw NotFoundException("Задача с идентификатором $taskId не найдена!")
+        var filePath: String = fileDirectory + taskId.toString() + "\\"
+        filePath += file.originalFilename
+        val fileEntity = FileEntity(null, file.contentType, filePath, file.originalFilename, task)
+        fileRepository.save(fileEntity)
+        Files.createDirectories(Paths.get(filePath))
+        file.transferTo(File(filePath))
+        val files = Files.readAllBytes(File(filePath).toPath())
+        return ResponseEntity.ok().contentType(MediaType.valueOf(file.contentType ?: "image/png")).body(files)
     }
 
+    /**
+     * Изменение файла для задачи с указанным идентификатором [taskId].
+     *
+     * @param taskId Идентификатор задачи.
+     * @param newFile Новый файл.
+     * @return Новый файл.
+     */
     @PutMapping("file/{taskId}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @Operation(summary = "Изменение файла задачи.")
     fun updateFile(
@@ -74,30 +90,39 @@ class FileController(private val fileRepository: FileRepository,
         @PathVariable(value = "taskId") taskId: Long,
         @Parameter(description = "Файл.", content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)])
         @RequestParam("file") newFile: MultipartFile
-    ): ResponseEntity<String> {
-        val file = fileRepository.findByTaskIdTask(taskId)
-        if (file != null && !newFile.isEmpty) {
-            var message: String
-            try {
-                Files.delete(Paths.get(file.path))
-                val filePath = fileDirectory + taskId.toString() + "\\" + newFile.originalFilename
-                file.apply {
-                    type = newFile.contentType
-                    path = filePath
-                    name = newFile.originalFilename
-                }
-                newFile.transferTo(File(filePath))
-                fileRepository.save(file)
-                message = "Новый файл загружен"
-            } catch (e: IOException) {
-                message = "Ошибка: " + e.localizedMessage
-            }
-            return ResponseEntity.ok().body(message)
-        } else {
-            return ResponseEntity.notFound().build()
+    ): ResponseEntity<ByteArray> {
+        val file = fileRepository.findByTaskIdTask(taskId) ?: FileEntity()
+//            ?: throw NotFoundException("Файл для задачи с идентификатором $taskId не найден!")
+        if (newFile.isEmpty) {
+            throw NotFoundException("Файл не найден!")
         }
+        val findTask = taskRepository.findByIdOrNull(taskId)
+            ?: throw NotFoundException("Задача с идентификатором $taskId не найдена!")
+        val filePath = fileDirectory + taskId.toString() + "\\" + newFile.originalFilename
+        if (file.path != null){
+            Files.delete(Paths.get(file.path!!))
+        } else {
+            Files.createDirectories(Paths.get(filePath))
+//            newFile.transferTo(File(filePath))
+        }
+        file.apply {
+            type = newFile.contentType
+            path = filePath
+            name = newFile.originalFilename
+            task = findTask
+        }
+        newFile.transferTo(File(filePath))
+        fileRepository.save(file)
+        val files = Files.readAllBytes(File(filePath).toPath())
+        return ResponseEntity.ok().contentType(MediaType.valueOf(file.type ?: "image/png")).body(files)
     }
 
+    /**
+     * Получение файла по идентификатору [taskId] задачи.
+     *
+     * @param taskId Идентификатор задачи.
+     * @return Файл.
+     */
     @GetMapping("/file/{taskId}")
     @Operation(summary = "Получение файла по id задачи.")
     fun downloadFileFromFileSystem(
@@ -105,25 +130,28 @@ class FileController(private val fileRepository: FileRepository,
         @PathVariable taskId: Long
     ): ResponseEntity<ByteArray> {
         val file = fileRepository.findByTaskIdTask(taskId)
-        return if (file != null) {
-            val filePath: String = file.path
-            val files = Files.readAllBytes(File(filePath).toPath())
-            return ResponseEntity.ok().contentType(MediaType.valueOf(file.type ?: "image/png")).body(files)
-        } else {
-            ResponseEntity.notFound().build()
-        }
+            ?: throw NotFoundException("Файл для задачи с идентификатором $taskId не найден!")
+        val filePath: String = file.path!!
+        val files = Files.readAllBytes(File(filePath).toPath())
+        return ResponseEntity.ok().contentType(MediaType.valueOf(file.type ?: "image/png")).body(files)
     }
 
+    /**
+     * Удаление файла по идентификатору [taskId] задачи.
+     *
+     * @param taskId Идентификатор задачи.
+     * @return [Response] - Собщение, что тег был удален.
+     */
     @DeleteMapping("/file/{taskId}")
     @Operation(summary = "Удаление файла по id задачи.")
     fun deleteFile(
         @Parameter(description = "id задачи.")
         @PathVariable(value = "taskId") taskId: Long
-    ): ResponseEntity<String> {
-        return fileRepository.findByTaskIdTask(taskId)?.run {
-            File(fileDirectory + taskId.toString()).deleteRecursively()
-            fileRepository.delete(this)
-            ResponseEntity.ok().body("Файл удален")
-        } ?: ResponseEntity.notFound().build()
+    ): Response {
+        val file = fileRepository.findByTaskIdTask(taskId)
+            ?: throw NotFoundException("Файл для задачи с идентификатором $taskId не найден!")
+        File(fileDirectory + taskId.toString()).deleteRecursively()
+        fileRepository.delete(file)
+        return Response("Файл удален.")
     }
 }
