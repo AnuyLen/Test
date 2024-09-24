@@ -1,4 +1,4 @@
-package org.example.test.model
+package org.example.test.model.error
 
 import io.swagger.v3.oas.annotations.Hidden
 

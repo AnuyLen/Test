@@ -1,6 +1,5 @@
 package org.example.test.model
 
-import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotNull
 import org.example.test.entity.TagEntity
@@ -10,20 +9,18 @@ import org.example.test.entity.TaskEntity
  *
  * Информация о теге.
  *
-// * @property id Идентификатор тега.
  * @property title Заголовок тега.
- * @property tasks_id Идентификаторы задач, которые принадлежат данному тегу.
+ * @property taskIds Идентификаторы задач, которые принадлежат данному тегу.
  */
-
 @Schema(description = "Информация о теге.")
 data class Tag(
 
-    @Schema(name  = "Заголовок тега.")
+    @Schema(description  = "Заголовок тега.")
     @field:NotNull(message = "Укажите заголовок тега!")
     val title: String?,
 
-    @Schema(name  = "Идентификаторы задач, которые принадлежат данному тегу.")
-    val tasks_id: List<Long?>? = null
+    @Schema(description  = "Идентификаторы задач, которые принадлежат данному тегу.")
+    val taskIds: List<Long?>? = null
 ){
 
     /**

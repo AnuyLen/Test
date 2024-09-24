@@ -1,6 +1,5 @@
 package org.example.test.model
 
-import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.FutureOrPresent
 import jakarta.validation.constraints.NotNull
@@ -14,33 +13,33 @@ import java.time.LocalDate
  * Информация о задаче.
  *
 // * @property id Идентификатор тега.
- * @property id_type Идентификатор типа задачи.
+ * @property typeId Идентификатор типа задачи.
  * @property name Название задачи.
  * @property description Описание задачи.
  * @property date Запланированная дата.
- * @property tags_id Идентификаторы задач, которые принадлежат данному тегу.
+ * @property tagIds Идентификаторы задач, которые принадлежат данному тегу.
  */
 @Schema(description = "Информация о задаче.")
 data class Task(
 
-    @Schema(name = "Идентификатор типа задачи.")
+    @Schema(description = "Идентификатор типа задачи.")
     @field:NotNull(message = "Укажите идентификатор типа!")
-    val id_type: Long?,
+    val typeId: Long? = null,
 
-    @Schema(name = "Название задачи.")
+    @Schema(description = "Название задачи.")
     @field:NotNull(message = "Укажите название задачи!")
-    val name: String?,
+    val name: String? = null,
 
-    @Schema(name = "Описание задачи.")
-    val description: String?,
+    @Schema(description = "Описание задачи.")
+    val description: String? = null,
 
-    @Schema(name = "Запланированная дата.")
+    @Schema(description = "Запланированная дата.")
     @field:FutureOrPresent(message = "Запланированная дата должна быть не меньше текущей!")
     @field:NotNull(message = "Укажите запланированную дату!")
-    val date: LocalDate?,
+    val date: LocalDate? = null,
 
-    @Schema(name = "Идентификаторы тегов, которые принадлежат данной задаче.")
-    val tags_id: List<Long?>?
+    @Schema(description = "Идентификаторы тегов, которые принадлежат данной задаче.")
+    val tagIds: List<Long?>? = null
 ){
 
     /**

@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.example.test.entity.TaskEntity
 import org.example.test.exception.NotFoundException
-import org.example.test.model.Response
+import org.example.test.model.error.Response
 import org.example.test.model.Task
 import org.example.test.repository.TagRepository
 import org.example.test.repository.TaskRepository
@@ -49,7 +49,7 @@ class TaskController(private val taskRepository: TaskRepository,
     @GetMapping("/tasks")
     @Operation(summary = "Получить информацию о всех задачах.")
     fun getAllTasks(
-        @Parameter(description = "Параметр сортировки по приоритету: asc - по возрастанию, desc - по убыванию.",
+        @Parameter(description = "Параметр сортировки по приоритету: asc - по возрастанию, desc - по убыванию. По умолчанию asc.",
             example = "asc")
         @RequestParam("sort") sortType: String?,
         @Parameter(description = "Номер страницы.")
@@ -65,18 +65,18 @@ class TaskController(private val taskRepository: TaskRepository,
     /**
      * Получение списка всех задач за заданную дату.
      *
-     * @param dateString Запланированная дата.
+     * @param dateTask Запланированная дата.
      * @param sortType Тип сортировки: asc - по возрастанию, desc - по убыванию. По умолчанию asc.
      * @param offset Номер страницы.
      * @param limit Количество элементов на странице.
      * @return Страница, содержащая список задач - [Page]<[TaskEntity]>.
      */
-    @GetMapping("/task/{date}")
+    @GetMapping("/tasks/{date}")
     @Operation(summary = "Получить информацию о всех задачах, за заданную дату.")
     fun getTasksByDate(
         @Parameter(description = "Запланированная дата.")
-        @PathVariable(value = "date") dateString: String,
-        @Parameter(description = "Параметр сортировки по приоритету: asc - по возрастанию, desc - по убыванию.",
+        @PathVariable(value = "date") dateTask: String,
+        @Parameter(description = "Параметр сортировки по приоритету: asc - по возрастанию, desc - по убыванию. По умолчанию asc.",
             example = "asc")
         @RequestParam("sort") sortType: String?,
         @Parameter(description = "Номер страницы.")
@@ -85,7 +85,7 @@ class TaskController(private val taskRepository: TaskRepository,
         @RequestParam(value = "limit", defaultValue = "10") limit: Int
     ): Page<TaskEntity> {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val date: LocalDate = LocalDate.parse(dateString, formatter)
+        val date: LocalDate = LocalDate.parse(dateTask, formatter)
         return when (sortType){
             "desc" -> taskRepository.findByDateOrderByTypePriorityDesc(date, PageRequest.of(offset, limit))
             else -> taskRepository.findByDateOrderByTypePriorityAsc(date, PageRequest.of(offset, limit))
@@ -104,10 +104,10 @@ class TaskController(private val taskRepository: TaskRepository,
         @Parameter(description = "Информация о задаче.")
         @Valid @RequestBody task: Task
     ): TaskEntity {
-        val type = task.id_type?.let { typeRepository.findByIdOrNull(it) }
-            ?: throw NotFoundException("Тип задачи с идентификатором ${task.id_type} не найден!")
+        val type = task.typeId?.let { typeRepository.findByIdOrNull(it) }
+            ?: throw NotFoundException("Тип задачи с идентификатором ${task.typeId} не найден!")
         val taskEntity: TaskEntity
-        val tags = task.tags_id?.let { tagRepository.findAllById(it) }?.toSet()
+        val tags = task.tagIds?.let { tagRepository.findAllById(it) }?.toSet()
         taskEntity = task.toEntity(type, tags)
         return taskRepository.save(taskEntity)
     }
@@ -128,15 +128,15 @@ class TaskController(private val taskRepository: TaskRepository,
         @Parameter(description = "Информация о задаче.")
         @Valid @RequestBody newTask: Task
     ): TaskEntity {
-        val type = newTask.id_type?.let { typeRepository.findByIdOrNull(it) }
-            ?: throw NotFoundException("Тип задачи с идентификатором ${newTask.id_type} не найден!")
+        val type = newTask.typeId?.let { typeRepository.findByIdOrNull(it) }
+            ?: throw NotFoundException("Тип задачи с идентификатором ${newTask.typeId} не найден!")
         val updateTaskEntity = TaskEntity(
             idTask = taskId,
             type = type,
             name = newTask.name,
             description = newTask.description,
             date = newTask.date,
-            tags = newTask.tags_id?.let { tagRepository.findAllById(it) }?.toSet()
+            tags = newTask.tagIds?.let { tagRepository.findAllById(it) }?.toSet() ?: setOf()
         )
         return taskRepository.save(updateTaskEntity)
     }
@@ -154,15 +154,15 @@ class TaskController(private val taskRepository: TaskRepository,
         @Parameter(description = "id задачи")
         @PathVariable(value = "id") taskId: Long,
         @Parameter(description = "Информация о задаче.")
-        /*@Valid */@RequestBody updateTask: Task
+        @RequestBody updateTask: Task
     ): TaskEntity {
         val existingTask = taskRepository.findByIdOrNull(taskId)
             ?: throw NotFoundException("Задача с идентификатором $taskId не найдена!")
         existingTask.date = updateTask.date ?: existingTask.date
-        existingTask.type = updateTask.id_type?.let { typeRepository.findById(it).get() } ?: existingTask.type
+        existingTask.type = updateTask.typeId?.let { typeRepository.findById(it).get() } ?: existingTask.type
         existingTask.name = updateTask.name ?: existingTask.name
         existingTask.description = updateTask.description ?: existingTask.description
-        existingTask.tags = updateTask.tags_id?.let { tagRepository.findAllById(it).toSet() } ?: existingTask.tags
+        existingTask.tags = updateTask.tagIds?.let { tagRepository.findAllById(it).toSet() } ?: existingTask.tags
         return taskRepository.save(existingTask)
     }
 

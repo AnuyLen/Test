@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.*
 
+
 /**
  *
  * Сущность, связанная с таблицей "file". Содержит информацию о файле.

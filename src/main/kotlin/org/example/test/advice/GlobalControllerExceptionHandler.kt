@@ -1,13 +1,11 @@
 package org.example.test.advice
 
 import io.swagger.v3.oas.annotations.Hidden
-import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.media.Schema
 import org.example.test.exception.AlreadyExistsException
 import org.example.test.exception.NotFoundException
-import org.example.test.model.Response
-import org.example.test.model.ValidationErrorResponse
-import org.example.test.model.Violation
+import org.example.test.model.error.Response
+import org.example.test.model.error.ValidationErrorResponse
+import org.example.test.model.error.Violation
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.*

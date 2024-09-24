@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.example.test.entity.FileEntity
 import org.example.test.exception.AlreadyExistsException
 import org.example.test.exception.NotFoundException
-import org.example.test.model.Response
+import org.example.test.model.error.Response
 import org.example.test.repository.FileRepository
 import org.example.test.repository.TaskRepository
 import org.springframework.data.repository.findByIdOrNull
@@ -54,7 +54,7 @@ class FileController(private val fileRepository: FileRepository,
     @Operation(summary = "Добавление файла для задачи.")
     fun uploadFileToFIleSystem(
         @Parameter(description = "id задачи.")
-        @PathVariable taskId: Long,
+        @PathVariable(value = "taskId") taskId: Long,
         @Parameter(description = "Файл.", content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)])
         @RequestParam("file") file: MultipartFile
     ): ResponseEntity<ByteArray> {
@@ -127,7 +127,7 @@ class FileController(private val fileRepository: FileRepository,
     @Operation(summary = "Получение файла по id задачи.")
     fun downloadFileFromFileSystem(
         @Parameter(description = "id задачи.")
-        @PathVariable taskId: Long
+        @PathVariable(value = "taskId") taskId: Long
     ): ResponseEntity<ByteArray> {
         val file = fileRepository.findByTaskIdTask(taskId)
             ?: throw NotFoundException("Файл для задачи с идентификатором $taskId не найден!")

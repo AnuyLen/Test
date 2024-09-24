@@ -6,7 +6,7 @@ import jakarta.validation.Valid
 import org.example.test.entity.TagEntity
 import org.example.test.exception.AlreadyExistsException
 import org.example.test.exception.NotFoundException
-import org.example.test.model.Response
+import org.example.test.model.error.Response
 import org.example.test.model.Tag
 import org.example.test.repository.TagRepository
 import org.example.test.repository.TaskRepository
@@ -53,7 +53,7 @@ class TagController(private val tagRepository: TagRepository,
     fun getTagByID(
         @Parameter(description = "id тега")
         @PathVariable(value = "id") tagId: Long,
-        @Parameter(description = "Параметр сортировки по приоритету: asc - по возрастанию, desc - по убыванию.",
+        @Parameter(description = "Параметр сортировки по приоритету: asc - по возрастанию, desc - по убыванию. По умолчанию asc",
             example = "asc")
         @RequestParam("sort") sortType: String?
     ): TagEntity {
@@ -81,7 +81,7 @@ class TagController(private val tagRepository: TagRepository,
         if (tag.title?.let { tagRepository.findByTitle(it) } != null) {
             throw AlreadyExistsException("Тег с названием ${tag.title} уже существует!")
         }
-        val tasks = tag.tasks_id?.let { taskRepository.findAllById(it) }?.toSet()
+        val tasks = tag.taskIds?.let { taskRepository.findAllById(it) }?.toSet()
         val tagEntity = tag.toEntity(tasks)
         return tagRepository.save(tagEntity)
     }
@@ -107,7 +107,7 @@ class TagController(private val tagRepository: TagRepository,
         val updateTagEntity = TagEntity(
             idTag = tagId,
             title = newTag.title,
-            tasks = newTag.tasks_id?.let { taskRepository.findAllById(it).toSet() }
+            tasks = newTag.taskIds?.let { taskRepository.findAllById(it).toSet() } ?: setOf()
         )
         return tagRepository.save(updateTagEntity)
     }
@@ -134,7 +134,7 @@ class TagController(private val tagRepository: TagRepository,
             throw AlreadyExistsException("Тег с названием ${updateTag.title} уже существует!")
         }
         existingTag.title = updateTag.title ?: existingTag.title
-        existingTag.tasks = updateTag.tasks_id?.let { taskRepository.findAllById(it).toSet() } ?: existingTag.tasks
+        existingTag.tasks = updateTag.taskIds?.let { taskRepository.findAllById(it).toSet() } ?: existingTag.tasks
         return tagRepository.save(existingTag)
     }
 

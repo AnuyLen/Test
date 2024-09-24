@@ -30,12 +30,9 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testImplementation("io.mockk:mockk:1.13.12")
 
-
-//	implementation("org.springdoc:springdoc-openapi-ui:2.5.0")
-//	implementation("org.springdoc:springdoc-openapi-kotlin:2.5.0")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
-//	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	configurations.matching { it.name.startsWith("dokka") }.configureEach {
 		resolutionStrategy.eachDependency {
 			if (requested.group.startsWith("com.fasterxml.jackson")) {

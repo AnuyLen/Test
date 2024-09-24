@@ -32,7 +32,7 @@ class TypeController(private val typeRepository: TypeRepository) {
     @GetMapping("/types")
     @Operation(summary = "Получить информацию о всех типах задач.")
     fun getAllTypes(
-        @Parameter(description = "Параметр сортировки по приоритету: asc - по возрастанию, desc - по убыванию.",
+        @Parameter(description = "Параметр сортировки по приоритету: asc - по возрастанию, desc - по убыванию. По умолчанию asc.",
             example = "asc")
         @RequestParam("sort") sortType: String?
     ): List<TypeEntity> =
