@@ -33,12 +33,20 @@ class TagController(private val tagRepository: TagRepository,
     /**
      * Получение списка всех тегов, у которых есть задачи.
      *
+     * @param sortType Тип сортировки: asc - по возрастанию, desc - по убыванию. По умолчанию asc.
      * @return Список тегов - [List]<[TagEntity]>.
      */
     @GetMapping("/tags")
     @Operation(summary = "Получить информацию о всех тегах, у которых есть задачи.")
-    fun getAllTags(): List<TagEntity> {
-        return tagRepository.findByTasksIsNotNull()
+    fun getAllTags(
+        @Parameter(description = "Параметр сортировки по приоритету: asc - по возрастанию, desc - по убыванию. По умолчанию asc",
+            example = "asc")
+        @RequestParam("sort") sortType: String?
+    ): List<TagEntity> {
+        return  when (sortType) {
+            "desc" -> tagRepository.findByTasksIsNotNullOrderByIdTagDesc()
+            else -> tagRepository.findByTasksIsNotNullOrderByIdTagAsc()
+        }
     }
 
     /**
@@ -60,8 +68,8 @@ class TagController(private val tagRepository: TagRepository,
         val tag = tagRepository.findByIdOrNull(tagId)
             ?: throw NotFoundException("Тег с идентификатором $tagId не найден!")
         when (sortType){
-            "desc" -> tag.tasks = tag.tasks?.sortedByDescending { it.type?.priority }?.toSet()
-            else -> tag.tasks = tag.tasks?.sortedBy { it.type?.priority }?.toSet()
+            "desc" -> tag.tasks = tag.tasks?.sortedByDescending { it.type?.priority }?.toMutableSet()
+            else -> tag.tasks = tag.tasks?.sortedBy { it.type?.priority }?.toSet()?.toMutableSet()
         }
         return tag
     }
@@ -81,7 +89,7 @@ class TagController(private val tagRepository: TagRepository,
         if (tag.title?.let { tagRepository.findByTitle(it) } != null) {
             throw AlreadyExistsException("Тег с названием ${tag.title} уже существует!")
         }
-        val tasks = tag.taskIds?.let { taskRepository.findAllById(it) }?.toSet()
+        val tasks = tag.taskIds?.let { taskRepository.findAllById(it) }?.toMutableSet()
         val tagEntity = tag.toEntity(tasks)
         return tagRepository.save(tagEntity)
     }
@@ -107,7 +115,7 @@ class TagController(private val tagRepository: TagRepository,
         val updateTagEntity = TagEntity(
             idTag = tagId,
             title = newTag.title,
-            tasks = newTag.taskIds?.let { taskRepository.findAllById(it).toSet() } ?: setOf()
+            tasks = newTag.taskIds?.let { taskRepository.findAllById(it).toMutableSet() } ?: mutableSetOf()
         )
         return tagRepository.save(updateTagEntity)
     }
@@ -134,7 +142,7 @@ class TagController(private val tagRepository: TagRepository,
             throw AlreadyExistsException("Тег с названием ${updateTag.title} уже существует!")
         }
         existingTag.title = updateTag.title ?: existingTag.title
-        existingTag.tasks = updateTag.taskIds?.let { taskRepository.findAllById(it).toSet() } ?: existingTag.tasks
+        existingTag.tasks = updateTag.taskIds?.let { taskRepository.findAllById(it).toMutableSet() } ?: existingTag.tasks
         return tagRepository.save(existingTag)
     }
 

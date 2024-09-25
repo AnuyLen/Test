@@ -107,7 +107,7 @@ class TaskController(private val taskRepository: TaskRepository,
         val type = task.typeId?.let { typeRepository.findByIdOrNull(it) }
             ?: throw NotFoundException("Тип задачи с идентификатором ${task.typeId} не найден!")
         val taskEntity: TaskEntity
-        val tags = task.tagIds?.let { tagRepository.findAllById(it) }?.toSet()
+        val tags = task.tagIds?.let { tagRepository.findAllById(it) }?.toMutableSet()
         taskEntity = task.toEntity(type, tags)
         return taskRepository.save(taskEntity)
     }
@@ -136,7 +136,7 @@ class TaskController(private val taskRepository: TaskRepository,
             name = newTask.name,
             description = newTask.description,
             date = newTask.date,
-            tags = newTask.tagIds?.let { tagRepository.findAllById(it) }?.toSet() ?: setOf()
+            tags = newTask.tagIds?.let { tagRepository.findAllById(it) }?.toMutableSet() ?: mutableSetOf()
         )
         return taskRepository.save(updateTaskEntity)
     }
@@ -162,7 +162,7 @@ class TaskController(private val taskRepository: TaskRepository,
         existingTask.type = updateTask.typeId?.let { typeRepository.findById(it).get() } ?: existingTask.type
         existingTask.name = updateTask.name ?: existingTask.name
         existingTask.description = updateTask.description ?: existingTask.description
-        existingTask.tags = updateTask.tagIds?.let { tagRepository.findAllById(it).toSet() } ?: existingTask.tags
+        existingTask.tags = updateTask.tagIds?.let { tagRepository.findAllById(it).toMutableSet() } ?: existingTask.tags
         return taskRepository.save(existingTask)
     }
 

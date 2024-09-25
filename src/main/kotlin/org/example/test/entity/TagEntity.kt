@@ -36,5 +36,5 @@ class TagEntity(
         joinColumns = [JoinColumn(name = "id_tag", referencedColumnName = "id_tag")],
         inverseJoinColumns = [JoinColumn(name = "id_task", referencedColumnName = "id_task")]
     )
-    var tasks: Set<TaskEntity>? = hashSetOf()
+    var tasks: MutableSet<TaskEntity>? = hashSetOf()
 )

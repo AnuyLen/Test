@@ -2,6 +2,7 @@ package org.example.test.model
 
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.FutureOrPresent
+import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import org.example.test.entity.TagEntity
 import org.example.test.entity.TaskEntity
@@ -27,7 +28,7 @@ data class Task(
     val typeId: Long? = null,
 
     @Schema(description = "Название задачи.")
-    @field:NotNull(message = "Укажите название задачи!")
+    @field:NotEmpty(message = "Укажите название задачи!")
     val name: String? = null,
 
     @Schema(description = "Описание задачи.")
@@ -50,9 +51,8 @@ data class Task(
      * @param tagEntities Список [TaskEntity], которые принадлежат данному тегу.
      * @return [TaskEntity]
      */
-    fun toEntity(typeEntity: TypeEntity, tagEntities: Set<TagEntity>? = null): TaskEntity =
+    fun toEntity(typeEntity: TypeEntity, tagEntities: MutableSet<TagEntity>? = null): TaskEntity =
         TaskEntity(
-//            idTask = this.id,
             type = typeEntity,
             name = this.name,
             description = this.description,

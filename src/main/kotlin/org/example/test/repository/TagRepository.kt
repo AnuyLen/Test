@@ -13,9 +13,16 @@ interface TagRepository: JpaRepository<TagEntity, Long> {
     /**
      * Получение всех тегов, у которых есть задачи.
      *
-     * @return Список всех тегов, у которых есть задачи.
+     * @return Список всех тегов, у которых есть задачи, отсиртированные по идентификатору в порядке возрастания.
      */
-    fun findByTasksIsNotNull(): List<TagEntity>
+    fun findByTasksIsNotNullOrderByIdTagAsc(): List<TagEntity>
+
+    /**
+     * Получение всех тегов, у которых есть задачи.
+     *
+     * @return Список всех тегов, у которых есть задачи, отсиртированные по идентификатору в порядке убывания.
+     */
+    fun findByTasksIsNotNullOrderByIdTagDesc(): List<TagEntity>
 
     /**
      * Получение тега по заголовку.
